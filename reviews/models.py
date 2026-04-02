@@ -75,9 +75,11 @@ class Review(models.Model):
     def clean(self):
         # Don't allow user to leave more than one review
         if not self.pk and getattr(self, "book", None) and self.book.already_reviewed(self.added_by):
-            print(f"Calling .clean() -> {getattr(self, "book", None)} and {self.book.already_reviewed(self.added_by)}")
+            print(f"Calling .clean() -> {getattr(self, 'book', None)} and {self.book.already_reviewed(self.added_by)}")
             raise ValidationError("You have already reviewed this book. You can try editing your existing review.")
-        super().clean()
+        super().clean() # Docker
+
+
 
     @property
     def can_edit_for(self):
