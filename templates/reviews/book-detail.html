@@ -1,0 +1,418 @@
+{% extends "partials/base.html" %}
+
+{% load get_stars_for_rating %}
+
+{% block title %}
+<title>Book Detail</title>
+{% endblock title %}
+
+{% block styles %}
+<style>
+  .book-detail-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem clamp(1.25rem, 4vw, 3rem);
+  }
+
+  .book-detail-sidebar {
+    position: sticky;
+    top: 84px;
+  }
+
+  .book-meta-pills {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    background: var(--bg3);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+  }
+
+  .meta-row .label { color: var(--text-dim); }
+  .meta-row .value { color: var(--text-sub); font-weight: 500; }
+
+  .reviews-section {
+    margin-top: 3rem;
+  }
+
+  .reviews-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .reviews-section-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .login-prompt {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .login-prompt p {
+    color: var(--text-sub);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .login-prompt-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .review-card { margin-bottom: 0; }
+
+  .review-actions .btn {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+  }
+
+  .already-reviewed {
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: var(--green);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .star-rating-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .star-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 2.25rem;
+    line-height: 1;
+    color: var(--text-dim);
+    transition: color 0.15s, transform 0.15s;
+    padding: 0.1rem;
+  }
+
+  .star-btn:hover,
+  .star-btn.lit {
+    color: var(--gold);
+    transform: scale(1.15);
+  }
+
+  .rating-label {
+    font-size: 0.875rem;
+    color: var(--text-sub);
+    margin-left: 0.5rem;
+  }
+
+  .char-count {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-align: right;
+    margin-top: 0.25rem;
+  }
+
+  .char-count.warn { color: var(--gold); }
+  .char-count.over { color: var(--red); }
+
+  .review-guidelines {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .review-guidelines h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-sub);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .review-guidelines ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .review-guidelines li {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .review-guidelines li::before { content: '✓'; color: var(--green); }
+</style>
+
+{% endblock styles %}
+
+
+{% block content %}
+{% comment %} <main class="book-detail-wrap page-fade-in" id="main-content">
+    <div id="book-content">
+      <div style="text-align:center;padding:4rem;color:var(--text-dim)">
+        <div class="loading-spinner"></div>
+        <p style="margin-top:1rem">Loading book…</p>
+      </div>
+    </div>
+  </main> {% endcomment %}
+  <main class="book-detail-wrap page-fade-in">
+    <div>
+      <div class="breadcrumb">
+        <a href="books.html">Books</a>
+        <span>›</span>
+        <span>{{ book.title }}</span>
+      </div>
+
+      <div class="book-detail-layout">
+        <!-- Sidebar -->
+        <div class="book-detail-sidebar">
+          <img class="book-detail-cover"
+            src="{{ book.cover_image.url }}"
+            alt="{{ book.title }} Cover Image"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="book-detail-cover-placeholder" style="display:none">📚</div>
+
+          <div style="margin-top:1.25rem;display:flex;flex-direction:column;gap:0.75rem">
+            {% if request.user.is_authenticated %}
+              {% if already_reviewed %}
+              <p class="btn btn-primary btn-full btn-lg">
+                You've reviewed this book
+              </p>
+              {% else %}
+              <a href="#review-form" class="btn btn-primary btn-full btn-lg">
+              Write a Review
+              </a>
+              {% endif %}
+            {% else %}
+            <a href="login.html" class="btn btn-primary btn-full btn-lg">
+            Log In to Review
+            </a>
+            {% endif %}
+            
+          </div>
+
+          <div class="book-meta-pills">
+            <div class="meta-row">
+              <span class="label">Genre</span>
+              <span class="value"><span class="badge" data-genre="Mystery">{{ book.get_genre_display }}</span></span>
+            </div>
+            <div class="meta-row">
+              <span class="label">Year</span>
+              <span class="value">{{ book.publication_date.year }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="label">Pages</span>
+              <span class="value">{{ book.number_of_pages }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="label">ISBN</span>
+              <span class="value" style="font-size:0.78rem">{{ book.isbn }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main -->
+        <div>
+          <h1 class="book-detail-title">{{ book.title }} </h1>
+          <p class="book-detail-author">by {{ book.author.first_name }} {{ book.author.last_name }}</p>
+
+          <div class="book-detail-meta">
+            <div class="rating-big">
+              {% get_rating_stars book.int_average_rating %}
+              {% comment %} ★★★★☆ {% endcomment %}
+              <span style="font-size:1.1rem">{{ book.float_average_rating }}</span>
+            </div>
+            <span style="color:var(--text-dim);font-size:0.875rem">{{ book.reviews.count }} reviews</span>
+          </div>
+
+          <small>About {{ book.author.first_name }} {{ book.author.last_name }}</small>
+          <p class="book-detail-desc">
+          {{ book.author.bio }}
+          </p>
+
+          <div class="reviews-section">
+            <div class="reviews-section-header">
+              <h2>Reviews <span class="reviews-count">{{ book.reviews.count }} reviews</span></h2>
+            </div>
+
+
+
+           
+            {% if not request.user.is_authenticated %}
+            <div class="login-prompt">
+              <p>Sign in to leave a review and share your thoughts.</p>
+              <div class="login-prompt-actions">
+                <a href="{% url 'users:login' %}" class="btn btn-primary">Log In</a>
+                <a href="{% url 'users:signup' %}" class="btn btn-outline">Sign Up</a>
+              </div>
+            </div>
+            {% endif %}
+
+            <div class="reviews-list">
+            {% for review in book.reviews.all %}
+              <div class="review-card">
+                <div class="review-card-header">
+                  <div class="review-author">
+                    <div class="review-avatar">J</div>
+                    <div>
+                      <div class="review-author-name">{{ review.added_by }}</div>
+                      <div class="review-date">{{ review.added_at }}</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem">
+                    {% get_rating_stars review.rating %}
+                  </div>
+                  <div class="review-actions">
+                      <a {% if review.added_by == request.user %}href="{% url 'reviews:edit_review' review.id %}"{% endif %} class="btn {% if review.added_by == request.user %}btn-outline{% else %}btn-ghost{% endif %}" style="font-size:0.75rem;padding:0.3rem 0.7rem">✏️ Edit</a>
+                      <a {% if review.added_by == request.user %}href="{% url 'reviews:confirm_delete' review.id %}"{% endif %} class="btn  {% if review.added_by == request.user %}btn-danger{% else %}btn-ghost{% endif %}" style="font-size:0.75rem;padding:0.3rem 0.7rem">🗑 Delete</a>
+                  </div>
+                </div>
+                <div class="review-body">{{ review.content }}</div>
+                <div class="edit-timer">
+                  {% if review.can_still_edit %}
+                  ⏱ You can edit for <span>{{ review.can_edit_for }}</span>s
+                  {% else %}
+                  You can no longer edit this review
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <main class="review-form-page page-fade-in">
+    <div class="review-form-card">
+      <h1 style="font-size:1.75rem;margin-bottom:0.25rem">Write a Review</h1>
+      <p style="color:var(--text-sub);font-size:0.9rem;margin-bottom:1.5rem">Share your honest thoughts with the community.</p>
+
+      <!-- Book Info -->
+      {% comment %} <div class="review-form-book-info" id="book-info">
+        <div class="loading-spinner"></div>
+      </div> {% endcomment %}
+
+      <!-- Guidelines -->
+      <div class="review-guidelines">
+        <h4>Review Guidelines</h4>
+        <ul>
+          <li>Be specific — mention what you loved or didn't love</li>
+          <li>Keep it spoiler-free or warn readers beforehand</li>
+          <li>Be respectful and constructive</li>
+          <li>You can edit within 5 minutes of posting</li>
+        </ul>
+      </div>
+
+      <form id="review-form" onsubmit="handleSubmit(event)" method="POST">
+        {% csrf_token %}
+        <ul>
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+
+        <!-- Star Rating -->
+        <div class="form-group">
+          <label>Your Rating <span style="color:var(--red)">*</span></label>
+          <div class="star-rating-group">
+              <ul>
+                {% for error in form.errors.rating %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            <div id="stars-container">
+              <button type="button" class="star-btn" data-val="1">★</button>
+              <button type="button" class="star-btn" data-val="2">★</button>
+              <button type="button" class="star-btn" data-val="3">★</button>
+              <button type="button" class="star-btn" data-val="4">★</button>
+              <button type="button" class="star-btn" data-val="5">★</button>
+            </div>
+            <span class="rating-label" id="rating-label">Select a rating</span>
+          </div>
+          <input type="hidden" name="rating" id="rating-value" value="{{ form.rating.value|default_if_none:0 }}">
+        </div>
+
+        <div class="divider"></div>
+
+
+        <!-- Body -->
+        <div class="form-group">
+            <ul>
+              {% for error in form.errors.content %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          <label for="review-body">Your Review <span style="color:var(--red)">*</span></label>
+          <textarea name="content" id="review-body" rows="6" placeholder="What did you think about this book? What worked, what didn't, who would enjoy it?" maxlength="2000" required>{{ form.content.value|default:'' }}</textarea>
+          <div class="char-count" id="char-count">0 / 2000</div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" onclick="goBack()">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">Post Review →</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+{% endblock content %}
+
+{% block scripts %}
+  <script>
+    // Star rating interaction
+    let selectedRating = 0;
+    const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
+    const stars = document.querySelectorAll('.star-btn');
+
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        selectedRating = parseInt(star.dataset.val);
+        document.getElementById('rating-value').value = selectedRating;
+        document.getElementById('rating-label').textContent = ratingLabels[selectedRating];
+        updateStars(selectedRating);
+      });
+
+      star.addEventListener('mouseenter', () => updateStars(parseInt(star.dataset.val)));
+      star.addEventListener('mouseleave', () => updateStars(selectedRating));
+    });
+
+    function updateStars(upTo) {
+      stars.forEach(s => {
+        const val = parseInt(s.dataset.val);
+        s.classList.toggle('lit', val <= upTo);
+      });
+    }
+  </script>
+{% endblock scripts %}
+
+
+
