@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-mpd@8y6b$f)b_to!ntir!^8(we^6-)i)@leo56v+%t^e-1(2mr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['dollet.pythonanywhere.com', ]
 
 
 # Application definition
