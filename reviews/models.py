@@ -40,7 +40,7 @@ class Book(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="books")
     genre = models.CharField(choices=GenreChoices.choices, default=GenreChoices.FANTASY, max_length=11)
     publication_date = models.DateField()
-    isbn = models.CharField()
+    isbn = models.CharField(max_length=20)
     number_of_pages = models.IntegerField()
     cover_image = models.ImageField(upload_to="book_cover_images/")
 
