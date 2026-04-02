@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-mpd@8y6b$f)b_to!ntir!^8(we^6-)i)@leo56v+%t^e-1(2mr'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['dollet.pythonanywhere.com', ]
 
@@ -120,6 +120,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles' # 
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / "media"
